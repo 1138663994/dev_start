@@ -1,6 +1,8 @@
 <template>
   <div>
-    this is head
+    <div class="c-header">
+      this is head
+    </div>
   </div>
 </template>
 
@@ -10,5 +12,11 @@ export default {
 };
 </script>
 
-<style>
+<style lang="scss" scoped>
+.c-header {
+  width: 100px;
+  height: 30px;
+  background: red;
+  font-size: 14px;
+}
 </style>

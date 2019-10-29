@@ -3,13 +3,10 @@ import App from "./App.vue";
 import router from "./routers/index";
 import store from "./store/store";
 import http from './untils/http'
-import 'element-ui/lib/theme-chalk/index.css'
+import { Button } from 'vant';
 
-import {
-  Button
-} from 'element-ui'
+Vue.use(Button);
 
-Vue.use(Button)
 
 Vue.config.productionTip = false;
 Vue.prototype.$http = http

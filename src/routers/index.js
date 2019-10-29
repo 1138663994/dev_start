@@ -18,6 +18,10 @@ export default new Router({
           path: "/home",
           name: "home",
           component: () => import('@/pages/home'),
+        }, {
+          path: "/user",
+          name: "user",
+          component: () => import('@/pages/users'),
         }
       ]
     }, {
