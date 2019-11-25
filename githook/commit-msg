@@ -1,0 +1,25 @@
+#!/usr/env/node
+
+const fs = require('fs')
+
+let flag = fs.existsSync('.git')
+console.log('flag', flag)
+// commit规范校验
+if (flag) {
+  let txt = fs.readFileSync('.git/COMMIT_EDITMSG')
+  let reg = /(fix|feature|style|test|docs|refactor|misc):n*/ig
+  let regFlag = reg.test(txt)
+  if (regFlag) {
+    process.exit(0)
+  } else {
+    console.log(`commit 不合规范。具体规范如下：
+    feature: 新特性
+    fix: 修改问题
+    style: 代码格式修改
+    test: 上传跟测试相关的东西
+    docs: 文档修改
+    refactor: 代码重构
+    misc: 其他修改, 比如构建流程, 依赖管理`)
+    process.exit(1)
+  }
+}

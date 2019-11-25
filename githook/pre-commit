@@ -1,0 +1,80 @@
+#!/usr/env/node
+/* eslint-disable indent */
+
+const util = require('util');
+const exec = util.promisify(require('child_process').exec);
+const path = require('path');
+const config = require(path.resolve('.eslintrc.js')); //加载你的eslint配置文件,注意是是放在项目的根目录下
+const CLIEngine = require('eslint').CLIEngine;//使用官方提供的eslint的API
+//API参考地址： https://eslint.org/docs/developer-guide/nodejs-api 
+
+let cli = new CLIEngine(config);
+
+//存储不满足eslint的信息
+let errCached = {};
+
+// console.log('exec', exec)
+async function esLineTest() {
+  const { stdout, stderr } = await exec('git diff --cached --name-only --diff-filter=ACMR -- src/');
+  if (stderr) {
+    console.log('校验异常，请重新尝试')
+    process.exit(1)
+  }
+  console.log('stdout', stdout)
+  if (stdout.length) {
+    let allFile = stdout.split('\n');
+    allFile = allFile.filter((item) => {
+      return /\.(js|vue)$/g.test(item);
+    })
+    //allFile 是所有的改动文件路径的数组
+    let report = cli.executeOnFiles(allFile);
+    if (Number(report.errorCount) > 0 || Number(report.warningCount) > 0) {
+      for (let item of report.results) {
+        let temp = errCached[item.filePath] = [];
+        if (Number(item.errorCount) > 0 || Number(item.warningCount) > 0) {
+          for (let errMsg of item.messages) {
+            temp.push({
+              ruleId: errMsg.ruleId,
+              message: errMsg.message,
+              line: errMsg.line,
+              column: errMsg.column
+            })
+          }
+        }
+      }
+
+      //梳理输出结果
+      console.log('以下文件存在问题(不满足eslint规范)\n');
+      let num = 1;
+      for (let str in errCached) {
+        let temp = errCached[str];
+        if (temp.length > 0) {
+          console.log(`${num++}=>${str}\n`);
+          let index = 0;
+          for (let item of temp) {
+            console.log(`\t${++index}.错误为:${item.message},行:${item.line},列:${item.column},错误规则:${item.ruleId}`);
+          }
+        }
+      }
+
+      if (num > 1) {
+        console.log('\n\错误太多,建议你把config下的webpack.dev.conf.js的所属自己的板块的eslint验证打开');
+        process.exit(1);
+      } else {
+        console.log('验证通过了，可以上传');
+        process.exit(0);
+      }
+
+    } else {
+      console.log('验证通过了，可以上传');
+      process.exit(0);
+    }
+
+  } else {
+    console.log('验证通过了，可以上传')
+    process.exit(0);
+  }
+  process.exit(1);
+  // console.log('stderr:', stderr);
+}
+esLineTest();
